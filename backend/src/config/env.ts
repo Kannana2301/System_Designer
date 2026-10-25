@@ -5,6 +5,7 @@ dotenv.config();
 export const env = {
   port: Number(process.env.PORT) || 8000,
   mongoURI: process.env.MONGODB_URI || "",
+  dbName: process.env.MONGODB_DB_NAME || "system_designer",
   jwtSecret: process.env.JWT_SECRET || "",
   groqApiKey: process.env.GROQ_API_KEY || "",
   geminiApiKey: process.env.GEMINI_API_KEY || "",
