@@ -136,10 +136,10 @@ class RateLimiter {
   }
 }
 
-const groqRateLimiter = new RateLimiter(5, 0.3);
+const aiRateLimiter = new RateLimiter(5, 0.3);
 
 async function generateWithRetry(prompt: string, maxRetries = 5): Promise<string> {
-  await groqRateLimiter.acquire();
+  await aiRateLimiter.acquire();
   
   for (let attempt = 0; attempt <= maxRetries; attempt++) {
     try {
