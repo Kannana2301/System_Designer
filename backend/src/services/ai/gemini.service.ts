@@ -1,10 +1,28 @@
-import { genAI } from "../../config/gemini.js";
+import { env } from "../../config/env.js";
+import { genAI, isGeminiConfigured } from "../../config/gemini.js";
 
-const MODELS = ["gemini-3.5-flash", "gemini-3.6-flash", "gemini-3.1-flash-lite"];
+// GEMINI_MODEL / GEMINI_MODELS can add overrides (comma separated). Configured
+// models are tried first, then the stable defaults, so a typo or a retired
+// model name does not take every AI feature down.
+const DEFAULT_MODELS = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-3.5-flash",
+  "gemini-3.6-flash",
+  "gemini-3.1-flash-lite",
+];
+
+const MODELS = Array.from(new Set([...env.geminiModels, ...DEFAULT_MODELS]));
 
 export const generateAIResponse = async (
   messages: Array<{ role: "system" | "user" | "assistant"; content: string }>
 ): Promise<string> => {
+  if (!isGeminiConfigured()) {
+    throw new Error(
+      "GEMINI_API_KEY is not configured. Add it to the Render environment variables."
+    );
+  }
+
   const systemMessage = messages.find((m) => m.role === "system");
   const chatMessages = messages.filter((m) => m.role !== "system");
 
@@ -30,10 +48,17 @@ export const generateAIResponse = async (
         return text;
       }
     } catch (error: any) {
-      console.warn(`[Gemini Service] Model ${modelName} failed:`, error.message || error);
+      console.warn(
+        `[Gemini Service] Model ${modelName} failed:`,
+        error.message || error
+      );
       lastError = error;
     }
   }
 
-  throw lastError || new Error("All Gemini models failed to generate response.");
+  const message =
+    lastError?.message || "All Gemini models failed to generate a response.";
+  throw new Error(
+    `AI generation failed. Check GEMINI_API_KEY and GEMINI_MODEL. Last error: ${message}`
+  );
 };

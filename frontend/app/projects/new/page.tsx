@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Sparkles, Wand2, Zap } from 'lucide-react';
@@ -20,6 +20,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
+import { ProjectLoading } from '@/components/project-not-found';
 import { getTechOptions } from '@/lib/mock-data';
 import { cn } from '@/lib/utils';
 import type { TechCategory } from '@/lib/types';
@@ -47,6 +49,7 @@ const TECH_CATEGORIES: { key: TechCategory; label: string; technologies: string[
 export default function CreateProjectPage() {
   const router = useRouter();
   const createProject = useStore((s) => s.createProject);
+  const token = useAuth((s) => s.token);
 
   const [name, setName] = useState('');
   const [description, setDescription] = useState('');
@@ -66,6 +69,12 @@ export default function CreateProjectPage() {
   });
   const [extraTech, setExtraTech] = useState<string[]>([]);
   const [generating, setGenerating] = useState(false);
+
+  useEffect(() => {
+    if (!token) {
+      router.replace('/login?next=/projects/new');
+    }
+  }, [token, router]);
 
   const canSubmit = name.trim() && description.trim();
 
@@ -105,6 +114,8 @@ export default function CreateProjectPage() {
       setGenerating(false);
     }
   };
+
+  if (!token) return <ProjectLoading />;
 
   return (
     <div className="min-h-screen bg-background">

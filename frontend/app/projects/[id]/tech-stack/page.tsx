@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { notFound } from 'next/navigation';
 import {
   Layers,
   Plus,
@@ -35,6 +34,7 @@ import { getTechOptions } from '@/lib/mock-data';
 import type { TechCategory } from '@/lib/types';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProjectNotFound } from '@/components/project-not-found';
 
 const CATEGORY_ICONS: Record<string, string> = {
   Frontend: '🎨',
@@ -101,16 +101,23 @@ export default function TechStackPage({
   const [newTech, setNewTech] = useState('');
   const [generating, setGenerating] = useState(false);
 
-  if (!project) return notFound();
-
-  const techStack = project.techStack as any;
-  const hasTechStack = techStack && (techStack.frontend?.length || techStack.backend?.length || techStack.database?.length || techStack.authentication?.length || techStack.otherServices?.length);
+  const techStack = project?.techStack as any;
+  const hasTechStack = Boolean(
+    techStack &&
+      (techStack.frontend?.length ||
+        techStack.backend?.length ||
+        techStack.database?.length ||
+        techStack.authentication?.length ||
+        techStack.otherServices?.length)
+  );
 
   useEffect(() => {
     if (!hasTechStack) {
       fetchTechStack(id);
     }
   }, [id, hasTechStack, fetchTechStack]);
+
+  if (!project) return <ProjectNotFound />;
 
   const handleGenerate = async () => {
     setGenerating(true);

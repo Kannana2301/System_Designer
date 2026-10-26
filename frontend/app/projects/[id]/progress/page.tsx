@@ -1,7 +1,7 @@
 'use client';
 
 
-import { notFound } from 'next/navigation';
+import { ProjectNotFound } from '@/components/project-not-found';
 import {
   BarChart3,
   CheckCircle2,
@@ -34,7 +34,7 @@ export default function ProgressPage({
 }) {
   const { id } = params;
   const project = useStore((s) => s.projects.find((p) => p.id === id));
-  if (!project) return notFound();
+  if (!project) return <ProjectNotFound />;
 
   const completedTasks = project.tasks.filter((t) => t.status === 'Completed').length;
   const inProgressTasks = project.tasks.filter((t) => t.status === 'In Progress').length;

@@ -4,7 +4,7 @@ import { useCallback, useState, useMemo, useRef, useEffect } from 'react';
 
 // Force dynamic rendering for this page
 export const dynamic = 'force-dynamic';
-import { notFound } from 'next/navigation';
+import { ProjectNotFound } from '@/components/project-not-found';
 import ReactFlow, {
   type Node,
   type Edge,
@@ -287,7 +287,7 @@ function ArchitectureCanvas({ projectId }: { projectId: string }) {
     }
   };
 
-  if (!project) return notFound();
+  if (!project) return <ProjectNotFound />;
 
   const selectedNode =
     selectedNodeIndex !== null ? project.archNodes[selectedNodeIndex] : null;
@@ -609,7 +609,7 @@ export default function ArchitecturePage({
     }
   };
 
-  if (!project) return notFound();
+  if (!project) return <ProjectNotFound />;
 
   return (
     <div className="flex h-full flex-col">

@@ -1,8 +1,8 @@
 'use client';
 
-
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import {
   BarChart3,
   Brain,
@@ -20,7 +20,9 @@ import { ThemeToggle } from '@/components/theme-toggle';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { useStore } from '@/lib/store';
+import { useAuth } from '@/lib/auth';
 import { cn } from '@/lib/utils';
+import { ProjectLoading, ProjectNotFound } from '@/components/project-not-found';
 
 const NAV_ITEMS = [
   { label: 'Overview', href: 'overview', icon: LayoutDashboard },
@@ -42,9 +44,36 @@ export default function ProjectLayout({
   params: { id: string };
 }) {
   const { id } = params;
+  const router = useRouter();
   const project = useStore((s) => s.projects.find((p) => p.id === id));
+  const fetchProjects = useStore((s) => s.fetchProjects);
+  const token = useAuth((s) => s.token);
+  const [resolving, setResolving] = useState(!project);
 
-  if (!project) return notFound();
+  useEffect(() => {
+    if (!token) {
+      router.replace(`/login?next=/projects/${id}/overview`);
+      return;
+    }
+
+    if (project) {
+      setResolving(false);
+      return;
+    }
+
+    let cancelled = false;
+    setResolving(true);
+    fetchProjects().finally(() => {
+      if (!cancelled) setResolving(false);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [id, token, project, fetchProjects, router]);
+
+  if (!token) return <ProjectLoading />;
+  if (!project) return resolving ? <ProjectLoading /> : <ProjectNotFound />;
 
   return (
     <div className="flex h-screen bg-background">

@@ -1,7 +1,6 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
-
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { apiUrl } from './config';
 
 interface User {
   _id: string;
@@ -24,6 +23,49 @@ interface AuthState {
   clearError: () => void;
 }
 
+async function readJson(response: Response): Promise<any> {
+  const raw = await response.text();
+  if (!raw) return {};
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return {
+      message:
+        raw.length > 300
+          ? `${raw.slice(0, 300)}...`
+          : raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+    };
+  }
+}
+
+async function postAuth(
+  path: '/api/auth/login' | '/api/auth/register',
+  body: Record<string, string>
+): Promise<{ user: User; token: string }> {
+  let response: Response;
+
+  try {
+    response = await fetch(apiUrl(path), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+    });
+  } catch {
+    throw new Error(
+      'Unable to reach the API. Check that NEXT_PUBLIC_API_URL points to the deployed backend and that the service is awake.'
+    );
+  }
+
+  const data = await readJson(response);
+
+  if (!response.ok) {
+    throw new Error(data.message || `Request failed with status ${response.status}`);
+  }
+
+  return { user: data.user, token: data.token };
+}
+
 export const useAuth = create<AuthState>()(
   persist(
     (set, get) => ({
@@ -35,16 +77,12 @@ export const useAuth = create<AuthState>()(
       register: async (name, email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await fetch(`${API_URL}/api/auth/register`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, email, password }),
+          const { user, token } = await postAuth('/api/auth/register', {
+            name,
+            email,
+            password,
           });
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.message || 'Registration failed');
-          }
-          set({ user: data.user, token: data.token, isLoading: false });
+          set({ user, token, isLoading: false });
         } catch (err: any) {
           set({ error: err.message, isLoading: false });
           throw err;
@@ -54,16 +92,11 @@ export const useAuth = create<AuthState>()(
       login: async (email, password) => {
         set({ isLoading: true, error: null });
         try {
-          const res = await fetch(`${API_URL}/api/auth/login`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ email, password }),
+          const { user, token } = await postAuth('/api/auth/login', {
+            email,
+            password,
           });
-          const data = await res.json();
-          if (!res.ok) {
-            throw new Error(data.message || 'Login failed');
-          }
-          set({ user: data.user, token: data.token, isLoading: false });
+          set({ user, token, isLoading: false });
         } catch (err: any) {
           set({ error: err.message, isLoading: false });
           throw err;
@@ -78,14 +111,14 @@ export const useAuth = create<AuthState>()(
         const token = get().token;
         if (!token) return;
         try {
-          const res = await fetch(`${API_URL}/api/auth/me`, {
+          const res = await fetch(apiUrl('/api/auth/me'), {
             headers: { Authorization: `Bearer ${token}` },
           });
           if (!res.ok) {
             set({ user: null, token: null });
             return;
           }
-          const data = await res.json();
+          const data = await readJson(res);
           set({ user: data.user });
         } catch {
           set({ user: null, token: null });

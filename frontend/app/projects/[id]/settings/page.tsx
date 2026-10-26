@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { notFound } from 'next/navigation';
+import { ProjectNotFound } from '@/components/project-not-found';
 import { useRouter } from 'next/navigation';
 import { Settings, Trash2, AlertTriangle, Info } from 'lucide-react';
 import {
@@ -34,7 +34,7 @@ export default function SettingsPage({
   const deleteProject = useStore((s) => s.deleteProject);
   const [deleteOpen, setDeleteOpen] = useState(false);
 
-  if (!project) return notFound();
+  if (!project) return <ProjectNotFound />;
 
   const handleDelete = () => {
     deleteProject(id);

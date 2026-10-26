@@ -27,6 +27,7 @@ import { useAuth } from '@/lib/auth';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProjectLoading } from '@/components/project-not-found';
 
 function formatDate(iso: string) {
   const date = new Date(iso);
@@ -57,10 +58,15 @@ export default function DashboardPage() {
     (a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
   );
   const { user, logout } = useAuth();
+  const token = useAuth((s) => s.token);
 
   useEffect(() => {
+    if (!token) {
+      router.replace('/login?next=/dashboard');
+      return;
+    }
     fetchProjects();
-  }, [fetchProjects]);
+  }, [fetchProjects, token, router]);
 
   const statCards = [
     {
@@ -80,6 +86,8 @@ export default function DashboardPage() {
       icon: TrendingUp,
     },
   ];
+
+  if (!token) return <ProjectLoading />;
 
   return (
     <div className="min-h-screen bg-background">

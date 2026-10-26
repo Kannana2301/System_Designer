@@ -4,15 +4,27 @@ services:
     runtime: node
     plan: free
     rootDir: backend
-    buildCommand: npm ci && npm run build
+    # NODE_ENV=production makes npm omit devDependencies (including typescript),
+    # so tsc would not exist and dist/server.js would never be built.
+    buildCommand: npm ci --include=dev && npm run build
     startCommand: npm start
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
+      - key: NODE_VERSION
+        value: 22.11.0
       - key: MONGODB_URI
         sync: false
       - key: JWT_SECRET
         sync: false
       - key: CLIENT_URL
         sync: false
+      - key: CLIENT_URLS
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_MODEL
+        sync: false
+      - key: MONGODB_DB_NAME
+        value: system_designer

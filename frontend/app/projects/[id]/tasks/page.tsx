@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { notFound } from 'next/navigation';
+import { ProjectNotFound } from '@/components/project-not-found';
 import {
   ListTodo,
   Plus,
@@ -100,7 +100,7 @@ export default function TasksPage({
   const [newDifficulty, setNewDifficulty] = useState<TaskDifficulty>('Medium');
   const [newTime, setNewTime] = useState('4h');
 
-  if (!project) return notFound();
+  if (!project) return <ProjectNotFound />;
 
   const openEdit = (task: Task) => {
     setEditingTask(task);

@@ -1,7 +1,6 @@
 'use client';
 
 import { useEffect } from 'react';
-import { notFound } from 'next/navigation';
 import {
   Brain,
   Users,
@@ -19,6 +18,7 @@ import { Button } from '@/components/ui/button';
 import { useStore } from '@/lib/store';
 import { cn } from '@/lib/utils';
 import { Skeleton } from '@/components/ui/skeleton';
+import { ProjectNotFound } from '@/components/project-not-found';
 
 const complexityColors: Record<string, string> = {
   Low: 'bg-chart-2/15 text-chart-2',
@@ -37,16 +37,16 @@ export default function AnalysisPage({
   const fetchAnalysis = useStore((s) => s.fetchAnalysis);
   const generateAnalysis = useStore((s) => s.generateAnalysis);
 
-  if (!project) return notFound();
-
-  const analysis = project.analysis;
-  const hasAnalysis = analysis && analysis.summary;
+  const analysis = project?.analysis;
+  const hasAnalysis = Boolean(analysis?.summary);
 
   useEffect(() => {
     if (!hasAnalysis) {
       fetchAnalysis(id);
     }
   }, [id, hasAnalysis, fetchAnalysis]);
+
+  if (!project) return <ProjectNotFound />;
 
   const handleGenerate = async () => {
     try {
@@ -59,7 +59,7 @@ export default function AnalysisPage({
   const complexity = analysis?.technicalComplexity?.level || 'Low';
   const complexityReason = analysis?.technicalComplexity?.reason || '';
 
-  if (!hasAnalysis) {
+  if (!analysis || !analysis.summary) {
     return (
       <div className="mx-auto max-w-4xl space-y-6 p-6">
         <div className="flex items-center gap-2">

@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { notFound } from 'next/navigation';
+import { ProjectNotFound } from '@/components/project-not-found';
 import { GitBranch, Circle, CheckCircle2, Clock, AlertCircle, Loader2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -45,7 +45,7 @@ export default function RoadmapPage({
     fetchRoadmap(id).finally(() => setInitialLoading(false));
   }, [id, project?.phases.length]);
 
-  if (!project) return notFound();
+  if (!project) return <ProjectNotFound />;
 
   const handleGenerate = async () => {
     setLoading(true);

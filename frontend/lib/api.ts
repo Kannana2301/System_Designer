@@ -1,29 +1,68 @@
+import { apiUrl } from './config';
 import { useAuth } from './auth';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+interface ApiErrorBody {
+  message?: string;
+  errors?: unknown;
+}
+
+async function parseResponseBody(response: Response): Promise<any> {
+  const raw = await response.text();
+
+  if (!raw) return {};
+
+  try {
+    return JSON.parse(raw);
+  } catch {
+    // Render/Netlify can return an HTML error page (502/504, proxy errors).
+    // Never let response.json() throw an opaque "Unexpected token '<'" error.
+    return {
+      message:
+        raw.length > 300
+          ? `${raw.slice(0, 300)}...`
+          : raw.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim(),
+    };
+  }
+}
 
 async function fetchWithAuth<T>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const token = useAuth.getState().token;
-  
-  const response = await fetch(`${API_URL}${endpoint}`, {
-    ...options,
-    headers: {
-      'Content-Type': 'application/json',
-      ...(token && { Authorization: `Bearer ${token}` }),
-      ...options.headers,
-    },
-  });
 
-  const data = await response.json();
+  let response: Response;
 
-  if (!response.ok) {
-    throw new Error(data.message || 'Request failed');
+  try {
+    response = await fetch(apiUrl(endpoint), {
+      ...options,
+      headers: {
+        'Content-Type': 'application/json',
+        ...(token && { Authorization: `Bearer ${token}` }),
+        ...options.headers,
+      },
+    });
+  } catch {
+    throw new Error(
+      'Unable to reach the API. Check that NEXT_PUBLIC_API_URL points to the deployed backend and that the service is awake.'
+    );
   }
 
-  return data;
+  const data: ApiErrorBody = await parseResponseBody(response);
+
+  if (response.status === 401) {
+    // The stored token is missing/expired. Clearing it lets the route guards
+    // redirect to /login instead of showing a misleading "not found" page.
+    useAuth.getState().logout();
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      data.message || `Request failed with status ${response.status}`
+    );
+  }
+
+  return data as T;
 }
 
 export const projectApi = {
@@ -144,5 +183,8 @@ export const chatApi = {
 
 export const healthApi = {
   check: () =>
-    fetch(`${API_URL}/api/health`).then((res) => res.json()),
+    fetch(apiUrl('/api/health')).then(async (res) => {
+      const data = await parseResponseBody(res);
+      return { ok: res.ok, status: res.status, ...data };
+    }),
 };

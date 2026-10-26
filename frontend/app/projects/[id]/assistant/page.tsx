@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { notFound } from 'next/navigation';
+import { ProjectNotFound } from '@/components/project-not-found';
 import { MessageSquare, Send, Sparkles, User, Bot } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -129,7 +129,7 @@ export default function AssistantPage({
     }
   }, [project?.chat, thinking]);
 
-  if (!project) return notFound();
+  if (!project) return <ProjectNotFound />;
 
   const handleSend = (text?: string) => {
     const content = text || input.trim();
@@ -147,8 +147,6 @@ export default function AssistantPage({
       setThinking(false);
     });
   };
-
-  if (!project) return notFound();
 
   return (
     <div className="flex h-full flex-col">

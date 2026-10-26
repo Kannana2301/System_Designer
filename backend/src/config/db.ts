@@ -18,10 +18,9 @@ export const connectDB = async (): Promise<void> => {
   const mongoURI = env.mongoURI;
 
   if (!mongoURI) {
-    console.error(
-      "MongoDB connection failed: MONGODB_URI is not defined in backend/.env"
+    throw new Error(
+      "MONGODB_URI is not defined. Set it in Render -> Environment (or backend/.env for local development)."
     );
-    process.exit(1);
   }
 
   mongoose.connection.on("disconnected", () => {
@@ -44,14 +43,14 @@ export const connectDB = async (): Promise<void> => {
           "MongoDB connection failed: authentication failed (bad auth).",
           "The cluster is reachable, but the username/password in MONGODB_URI were rejected.",
           "Fix: MongoDB Atlas -> Database Access -> edit user -> Edit Password -> set a new password,",
-          "then put it in backend/.env (URL-encode special characters such as @ as %40).",
+          "then update MONGODB_URI in Render -> Environment (URL-encode special characters such as @ as %40).",
         ].join("\n")
       );
     } else {
       console.error("MongoDB connection failed:", error);
     }
 
-    process.exit(1);
+    throw error;
   }
 };
 
