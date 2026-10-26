@@ -5,8 +5,7 @@ import { genAI, isGeminiConfigured } from "../../config/gemini.js";
 // models are tried first, then the stable defaults, so a typo or a retired
 // model name does not take every AI feature down.
 const DEFAULT_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.0-flash",
+  "gemini-3.8-flash",
   "gemini-3.5-flash",
   "gemini-3.6-flash",
   "gemini-3.1-flash-lite",

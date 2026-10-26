@@ -2,7 +2,12 @@ import './globals.css';
 import type { Metadata } from 'next';
 import { ThemeProvider } from '@/components/theme-provider';
 
+const siteUrl =
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  (process.env.NODE_ENV === 'development' ? 'http://localhost:3000' : undefined);
+
 export const metadata: Metadata = {
+  metadataBase: siteUrl ? new URL(siteUrl) : undefined,
   title: 'Project System Designer — Turn Ideas Into Development Plans',
   description:
     'Describe your project idea and let AI help you choose the right tech stack, create a roadmap, organize tasks, track progress, and design your system architecture.',

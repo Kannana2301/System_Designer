@@ -71,7 +71,7 @@ Set these environment variables in Render (Blueprint: **Environment**):
 | `CLIENT_URL` | The deployed frontend origin, for example `https://your-app.vercel.app` |
 | `CLIENT_URLS` | Optional comma-separated extra allowed origins (preview/custom domains) |
 | `GEMINI_API_KEY` | Gemini API key; required for AI analysis, roadmap, architecture, and chat |
-| `GEMINI_MODEL` | Optional model override, for example `gemini-2.5-flash` |
+| `GEMINI_MODEL` | Optional model override, for example `gemini-3.8-flash` |
 | `AI_PROVIDER` | Optional: `gemini` (default) |
 
 The backend validates `MONGODB_URI` and `JWT_SECRET` at startup and exits with
@@ -120,6 +120,6 @@ If you use a custom frontend domain, add it to `CLIENT_URL` or `CLIENT_URLS`.
 - **`GEMINI_API_KEY is not configured` in Render logs** – Authentication and
   project CRUD still work, but AI generation is disabled until the key is set.
 - **AI generation fails with a model error** – Set `GEMINI_MODEL` to a model
-  available to your key (for example `gemini-2.5-flash`).
+  available to your key (for example `gemini-3.8-flash`).
 - **Health check returns 503** – The service is running but MongoDB is not
   connected. Verify `MONGODB_URI`, then check the Atlas IP allowlist.
